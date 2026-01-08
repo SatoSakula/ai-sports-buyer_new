@@ -7,7 +7,9 @@ import pandas as pd
 
 from llm_direct import call_llm_api
 
-EXCEL_PATH = "/Users/yl_doc/Downloads/data-1767773780643.xlsx"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+EXCEL_PATH = os.path.join(BASE_DIR, "data", "data-1767773780643.xlsx")
+
 
 USER_PROFILE_DF = pd.read_excel(EXCEL_PATH)
 USER_PROFILE_DF["user_id"] = USER_PROFILE_DF["user_id"].astype(str)
