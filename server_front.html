@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI 场景化运动装备导购助手</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+/* ===== 你原有样式（保持不动） ===== */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f5f6f7;
+  display: flex;
+  flex-direction: column;
+}
+header {
+  height: 56px;
+  background: #111;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  font-weight: 600;
+}
+.layout { flex: 1; display: flex; overflow: hidden; }
+
+/* ===== 左侧行动包 ===== */
+.action-panel {
+  width: 300px;
+  background: #fff;
+  border-right: 1px solid #e5e5e5;
+  display: flex;
+  flex-direction: column;
+}
+.action-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+.action-count {
+  background: #16a34a;
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.action-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+}
+.action-tabs button {
+  flex: 1;
+  border: none;
+  border-radius: 999px;
+  padding: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  background: #f3f4f6;
+}
+.action-tabs button.active {
+  background: #6366f1;
+  color: #fff;
+}
+.product-list { flex: 1; overflow-y: auto; padding: 12px; }
+
+.ai-title {
+  font-weight: 600;
+  margin: 10px 0 6px;
+}
+
+.ai-bullet {
+  margin-left: 12px;
+}
+
+
+/* ===== 行动包卡片 ===== */
+.product-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.product-card:hover .dismiss { opacity: 1; }
+
+.btn-dismiss {
+  background: #fff;
+  color: #dc2626;              /* red-600 */
+  border: 1.5px solid #f87171; /* red-400 */
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-dismiss:hover {
+  background: #fee2e2;         /* red-100 */
+  border-color: #ef4444;       /* red-500 */
+}
+
+.btn-dismiss:active {
+  background: #fecaca;         /* red-200 */
+}
+
+
+.product-img {
+  width: 100%;
+  height: 120px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-size: cover;
+  background-position: center;
+}
+.product-name { font-weight: 600; margin-bottom: 4px; }
+.product-cat { font-size: 11px; color: #666; margin-bottom: 6px; }
+.product-reason { font-size: 12px; color: #555; margin-bottom: 8px; }
+.product-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.product-actions button {
+  font-size: 12px;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-view { background: #000; color: #fff; }
+.btn-own { background: #16a34a; color: #fff; }
+.star { font-size: 18px; cursor: pointer; }
+.star.filled { color: #f59e0b; }
+
+/* ===== 聊天 ===== */
+.chat-panel { flex: 1; display: flex; flex-direction: column; }
+.chat-messages { flex: 1; padding: 20px; overflow-y: auto; }
+.msg {
+  max-width: 70%;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.msg.ai {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  color: #111827;
+}
+
+
+.msg.user { margin-left: auto; background: #dbeafe; }
+.msg.ai.compare-msg {
+  max-width: 100%;
+  padding: 8px;
+}
+.chat-input {
+  display: flex;
+  padding: 12px;
+  border-top: 1px solid #e5e5e5;
+  background: #fff;
+  gap: 8px;
+}
+textarea {
+  flex: 1;
+  resize: none;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-size: 14px;
+}
+button.send {
+  padding: 0 16px;
+  border-radius: 8px;
+  border: none;
+  background: #000;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* ===== 聊天内对比区（新增） ===== */
+.compare-panel {
+  border: 1px dashed #c7d2fe;
+  border-radius: 14px;
+  padding: 14px 12px;
+  margin-top: 6px;
+  background: #f8f7ff;
+}
+.compare-cards {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.compare-card {
+  min-width: 200px;
+  max-width: 220px;
+  border-radius: 14px;
+  padding: 12px;
+  background: #ede9fe;
+  border: 1px solid #c4b5fd;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.compare-card.selected {
+  background: #ddd6fe;
+  border-color: #6366f1;
+}
+.compare-card .name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.compare-card .cat {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.compare-card button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+}
+
+.compare-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compare-footer button {
+  border: none;
+  background: #6366f1;
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+/* ===== 顶部 Header（修复版） ===== */
+.app-header {
+  height: 56px;
+  background: linear-gradient(to right, #111, #1f1f1f);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  font-weight: 600;
+}
+
+/* 左侧标题 */
+.header-left {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* 中间占位 */
+.header-center {
+  flex: 1;
+}
+
+/* 右侧 user_id */
+.header-right input {
+  height: 28px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #0f0f0f;
+  color: #e5e5e5;
+  width: 220px;
+}
+
+.header-right input::placeholder {
+  color: #777;
+}
+
+/* ===== 已拥有按钮状态 ===== */
+.btn-own {
+  background: #16a34a;
+  color: #fff;
+}
+
+.btn-own.owned {
+  background: #9ca3af; /* 灰色 */
+  color: #fff;
+  cursor: default;
+  pointer-events: none;
+}
+
+
+}
+</style>
+</head>
+
+<body>
+
+<header class="app-header">
+  <div class="header-left">
+    AI 场景化运动装备导购助手
+  </div>
+
+  <div class="header-center"></div>
+
+  <div class="header-right">
+    <input
+      id="userIdInput"
+      placeholder="user_id"
+      title="用户 ID"
+    />
+  </div>
+</header>
+
+
+<div class="layout">
+
+<!-- 行动包 -->
+<aside class="action-panel">
+  <div class="action-header">
+    行动包 <span class="action-count" id="actionCount">0</span>
+  </div>
+  <div class="action-tabs">
+    <button class="active" onclick="switchTab('all')">全部推荐</button>
+    <button onclick="switchTab('fav')">收藏</button>
+    <button onclick="switchTab('own')">已拥有</button>
+  </div>
+  <div class="product-list" id="productList">
+    <div style="color:#999;font-size:12px;">等待 AI 推荐…</div>
+  </div>
+</aside>
+
+<!-- 聊天 -->
+<main class="chat-panel">
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input">
+    <textarea id="input" rows="1" placeholder="描述你的运动需求…"></textarea>
+    <button class="send" onclick="send()">发送</button>
+  </div>
+</main>
+
+</div>
+
+<script>
+const API_URL = "http://localhost:8000/chat";
+const userIdInput = document.getElementById("userIdInput");
+
+// 从 localStorage 读取
+let USER_ID = localStorage.getItem("user_id") || "";
+
+// 初始化输入框
+if (USER_ID) {
+  userIdInput.value = USER_ID;
+}
+
+// 用户修改时保存
+userIdInput.addEventListener("change", () => {
+  USER_ID = userIdInput.value.trim();
+  if (USER_ID) {
+    localStorage.setItem("user_id", USER_ID);
+  }
+});
+
+
+const chat = document.getElementById("chatMessages");
+const productList = document.getElementById("productList");
+const input = document.getElementById("input");
+const actionCount = document.getElementById("actionCount");
+
+let sessionId = null;
+let currentTab = "all";
+
+let allProducts = {};
+let favorites = new Set();
+let owned = new Set();
+let compareSet = new Set();
+
+/* ===== raw JSON 兜底 ===== */
+function tryParseProductJSON(text) {
+  if (!text) return null;
+  const cleaned = text.replace(/```json|```/g, "").trim();
+  try {
+    const obj = JSON.parse(cleaned);
+    return Array.isArray(obj.items) ? obj : null;
+  } catch {
+    return null;
+  }
+}
+
+function renderMarkdown(text) {
+  if (!text) return "";
+
+  return text
+    // 标题行（单独一行的 **xxx**）
+    .replace(/^\*\*(.*?)\*\*$/gm, "<div class='ai-title'>$1</div>")
+
+    // **加粗**
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+
+    // 列表
+    .replace(/^\s*-\s+(.*)$/gm, "<div class='ai-bullet'>• $1</div>")
+
+    // 换行
+    .replace(/\n/g, "<br/>");
+}
+
+/* ===== 聊天 ===== */
+function addMsg(role, text = "") {
+  const div = document.createElement("div");
+  div.className = "msg " + role;
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+/* ===== 工具：更新所有对比计数（避免多个 compareCount id 冲突） ===== */
+function updateCompareCounts() {
+  document.querySelectorAll('[data-role="compareCount"]').forEach(el => {
+    el.textContent = String(compareSet.size);
+  });
+}
+
+/* ===== 聊天内对比区 ===== */
+function addComparePanel(items) {
+  const msg = document.createElement("div");
+  msg.className = "msg ai compare-msg";
+
+  msg.innerHTML = `
+    <div class="compare-panel">
+      <div class="compare-cards">
+        ${items.map(i => `
+          <div class="compare-card" data-id="${i.id}">
+            <div class="name">${i.name}</div>
+            <div class="cat">${i.category || ""}</div>
+            <button onclick="toggleCompare('${i.id}', this)">＋</button>
+          </div>
+        `).join("")}
+      </div>
+      <div class="compare-footer">
+        <div>已选择 <b data-role="compareCount">0</b> 个商品</div>
+        <button onclick="sendCompare()">对比商品</button>
+      </div>
+    </div>
+  `;
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+
+  // 初始化一次计数
+  updateCompareCounts();
+}
+
+function toggleCompare(id, btn) {
+  const card = btn.parentElement;
+  if (compareSet.has(id)) {
+    compareSet.delete(id);
+    btn.textContent = "＋";
+    card.classList.remove("selected");
+  } else {
+    compareSet.add(id);
+    btn.textContent = "✓";
+    card.classList.add("selected");
+  }
+  updateCompareCounts();
+}
+
+/* ===== 修复后的 sendCompare：真正走 SSE 流式读取 ===== */
+async function sendCompare() {
+  const compareSelection = Array.from(compareSet); //
+    if (!USER_ID) {
+      alert("请先输入 user_id（用于个性化推荐）");
+      return;
+    }
+
+  if (compareSelection.length < 2) {
+    alert("至少选择两个商品进行对比");
+    return;
+  }
+
+  // 组装 payload（必须和后端 is_compare_payload 对齐）
+  const payload = {
+    intent: "compare_products",
+    items: compareSelection.map(id => {
+      const p = allProducts[id];
+      return {
+        id: p?.id || id,
+        name: p?.name || "",
+        brand: p?.brand || "",
+        category: p?.category || "",
+        reason: p?.reason || ""
+      };
+    })
+  };
+
+  // 在聊天区显示用户动作
+  addMsg("user", "帮我对比这几个商品");
+
+  // AI 思考气泡（保留点点点）
+  const aiMsg = addMsg("ai", "AI 正在思考");
+  let dots = 0;
+  let hasStarted = false;
+
+  const loadingTimer = setInterval(() => {
+    if (!hasStarted) {
+      aiMsg.textContent = "AI 正在思考" + ".".repeat((dots++ % 3) + 1);
+    }
+  }, 400);
+
+  // 发起 SSE 请求（关键：必须读取 res.body 才会“有反应”）
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_id: USER_ID,
+      session_id: sessionId,
+      message: JSON.stringify(payload)
+    })
+  });
+
+  if (!res.ok || !res.body) {
+    clearInterval(loadingTimer);
+    aiMsg.textContent = `对比请求失败：HTTP ${res.status}`;
+    return;
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  // 真正开始流式接收
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split("\n\n");
+    buffer = events.pop();
+
+    for (const evt of events) {
+      if (!evt.startsWith("data:")) continue;
+
+      let obj = null;
+      try {
+        obj = JSON.parse(evt.replace(/^data:\s*/, ""));
+      } catch (e) {
+        continue;
+      }
+
+      // 会话 id
+      if (obj.session_id) sessionId = obj.session_id;
+
+      // 第一段内容到达后，停止 loading
+      if (!hasStarted) {
+        clearInterval(loadingTimer);
+        aiMsg.textContent = "";
+        hasStarted = true;
+      }
+
+      // 后端可能返回：product_compare / final_recommendation / text
+      if (obj.type === "product_compare") {
+        const data = obj.data || {};
+        const focus = data.focus ? `关注点：${data.focus}\n\n` : "";
+        const items = Array.isArray(data.items) ? data.items : [];
+
+        const lines = items.map(it => {
+          const name = it.name || "未命名产品";
+          const pros = Array.isArray(it.pros) ? it.pros.join("、") : "";
+          const cons = Array.isArray(it.cons) ? it.cons.join("、") : "";
+          return `【${name}】\n优点：${pros || "—"}\n限制：${cons || "—"}`;
+        }).join("\n\n");
+
+        const suggestion = data.suggestion ? `\n\n建议：${data.suggestion}` : "";
+        aiMsg.textContent += focus + lines + suggestion;
+        chat.scrollTop = chat.scrollHeight;
+        continue;
+      }
+
+      if (obj.type === "final_recommendation") {
+        const data = obj.data || {};
+        const pick = data.pick ? `最终推荐：${data.pick}` : "最终推荐：—";
+        const why = Array.isArray(data.why) ? `原因：${data.why.join("；")}` : "";
+        const next = data.next ? `下一步：${data.next}` : "";
+        aiMsg.textContent += `\n\n${pick}\n${why}${next ? "\n" + next : ""}`;
+        chat.scrollTop = chat.scrollHeight;
+        continue;
+      }
+
+      if (obj.type === "text") {
+        const t = obj?.data?.text || "";
+        aiMsg.textContent += t;
+        chat.scrollTop = chat.scrollHeight;
+        continue;
+      }
+    }
+  }
+
+  clearInterval(loadingTimer);
+}
+
+function tryParseLLMJson(text) {
+  if (!text) return null;
+
+  const cleaned = text
+    .replace(/```json|```/g, "")
+    .trim();
+
+  try {
+    const obj = JSON.parse(cleaned);
+    return obj && typeof obj === "object" ? obj : null;
+  } catch {
+    return null;
+  }
+}
+
+function renderStructuredResponse(obj, aiMsg) {
+  if (obj.type === "product_compare") {
+    const data = obj.data || {};
+    const focus = data.focus ? `关注点：${data.focus}\n\n` : "";
+    const items = Array.isArray(data.items) ? data.items : [];
+
+    const lines = items.map(it => {
+      return `【${it.name}】\n优点：${(it.pros || []).join("、") || "—"}\n限制：${(it.cons || []).join("、") || "—"}`;
+    }).join("\n\n");
+
+    const suggestion = data.suggestion ? `\n\n建议：${data.suggestion}` : "";
+    aiMsg.textContent += focus + lines + suggestion;
+    return true;
+  }
+
+  if (obj.type === "final_recommendation") {
+    const data = obj.data || {};
+    aiMsg.textContent += `\n\n最终推荐：${data.pick || "—"}\n原因：${(data.why || []).join("；")}`;
+    if (data.next) aiMsg.textContent += `\n下一步：${data.next}`;
+    return true;
+  }
+
+  return false;
+}
+
+
+/* ===== 行动包（与你原来一致） ===== */
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll(".action-tabs button").forEach(btn => {
+    btn.classList.toggle("active", btn.textContent.includes(
+      tab === "all" ? "全部" : tab === "fav" ? "收藏" : "已拥有"
+    ));
+  });
+  renderProducts();
+}
+
+function removeProduct(id) {
+  delete allProducts[id];
+  favorites.delete(id);
+  owned.delete(id);
+  compareSet.delete(id);
+  renderProducts();
+  updateCompareCounts();
+}
+
+function toggleFav(id) {
+  favorites.has(id) ? favorites.delete(id) : favorites.add(id);
+  renderProducts();
+}
+
+function markOwned(id) {
+  owned.add(id);
+  favorites.delete(id);
+  renderProducts();
+}
+
+function renderProducts() {
+  productList.innerHTML = "";
+  let items = Object.values(allProducts);
+  if (currentTab === "fav") items = items.filter(i => favorites.has(i.id));
+  if (currentTab === "own") items = items.filter(i => owned.has(i.id));
+
+  if (!items.length) {
+    productList.innerHTML = `<div style="color:#999;font-size:12px;">暂无商品</div>`;
+  }
+
+  items.forEach(item => {
+    const fav = favorites.has(item.id);
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.innerHTML = `
+      <div class="product-name">${item.name}</div>
+      <div class="product-cat">${item.category || ""}</div>
+      <div class="product-reason">${item.reason || ""}</div>
+
+      <div class="product-actions">
+          <button class="btn-view" onclick="openProduct('${item.id}')">查看</button>
+
+          <span class="star ${fav ? "filled" : ""}"
+                onclick="toggleFav('${item.id}')">
+            ${fav ? "★" : "☆"}
+          </span>
+
+          <button class="btn-own ${owned.has(item.id) ? 'owned' : ''}"
+                  onclick="markOwned('${item.id}')">
+            ${owned.has(item.id) ? '已拥有' : '标记已拥有'}
+          </button>
+
+          <button class="btn-dismiss"
+                  onclick="removeProduct('${item.id}')">
+            不感兴趣
+          </button>
+        </div>
+    `;
+    productList.appendChild(card);
+  });
+
+  actionCount.textContent = Object.keys(allProducts).length;
+}
+
+function openProduct(id) {
+  const item = allProducts[id];
+  const q = encodeURIComponent(item.search_hint || item.name);
+  const link = item.official_site
+    ? item.official_site.replace(/\/$/, "") + "/search?q=" + q
+    : "https://www.google.com/search?q=" + encodeURIComponent(item.name);
+  window.open(link, "_blank");
+}
+
+/* ===== 发送（保留动态思考） ===== */
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    send();
+  }
+});
+
+async function send() {
+  const text = input.value.trim();
+    if (!USER_ID) {
+      alert("请先输入 user_id（用于个性化推荐）");
+      return;
+    }
+
+  if (!text) return;
+
+  input.value = "";
+  addMsg("user", text);
+
+  const aiMsg = addMsg("ai", "AI 正在思考");
+  let dots = 0;
+  let hasStarted = false;
+
+  const loadingTimer = setInterval(() => {
+    if (!hasStarted) {
+      aiMsg.textContent = "AI 正在思考" + ".".repeat((dots++ % 3) + 1);
+    }
+  }, 400);
+
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: USER_ID, message: text, session_id: sessionId })
+  });
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  aiMsg.textContent = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split("\n\n");
+    buffer = events.pop();
+
+    for (const evt of events) {
+      if (!evt.startsWith("data:")) continue;
+      const obj = JSON.parse(evt.replace(/^data:\s*/, ""));
+      if (obj.session_id) sessionId = obj.session_id;
+
+        if (obj.type === "text") {
+          if (!hasStarted) {
+            clearInterval(loadingTimer);
+            aiMsg.textContent = "";
+            hasStarted = true;
+          }
+
+          const rawText = obj?.data?.text || "";
+
+          // ① 兜底：尝试解析 LLM 包在 text 里的 JSON
+          const parsedJson = tryParseLLMJson(rawText);
+
+          // ② 如果解析成功，并且是结构化 compare / final
+          if (parsedJson && parsedJson.type) {
+            const handled = renderStructuredResponse(parsedJson, aiMsg);
+            if (handled) {
+              chat.scrollTop = chat.scrollHeight;
+              continue;
+            }
+          }
+
+          // ③ 再尝试你原来的 product list JSON
+          const parsedProducts = tryParseProductJSON(rawText);
+          if (parsedProducts) {
+            if (parsedProducts.summary) aiMsg.textContent += parsedProducts.summary + "\n";
+            parsedProducts.items.forEach(i => allProducts[i.id] = i);
+            renderProducts();
+            addComparePanel(parsedProducts.items);
+          } else {
+            // ④ 最终兜底：普通文本
+            aiMsg.innerHTML += renderMarkdown(rawText);
+          }
+
+          chat.scrollTop = chat.scrollHeight;
+        }
+
+      if (obj.type === "product_list") {
+        clearInterval(loadingTimer);
+        obj.data.items.forEach(i => allProducts[i.id] = i);
+        renderProducts();
+        addComparePanel(obj.data.items);
+      }
+    }
+  }
+
+  clearInterval(loadingTimer);
+}
+</script>
+
+</body>
+</html>
