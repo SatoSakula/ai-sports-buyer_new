@@ -20,7 +20,6 @@ Instead of recommending large numbers of products, the system focuses on identif
 ├─ requirements.txt # Python dependencies
 ├─ runtime.txt # Python version for deployment
 ├─ data/ # Sample user profile data (Excel)
----
 
 ---
 
